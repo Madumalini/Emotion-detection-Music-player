@@ -1,0 +1,1522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <script>
+            // Theme toggle logic
+            function setTheme(mode) {
+                document.documentElement.setAttribute('data-theme', mode);
+                localStorage.setItem('theme', mode);
+            }
+            function toggleTheme() {
+                const current = document.documentElement.getAttribute('data-theme') || 'dark';
+                setTheme(current === 'dark' ? 'light' : 'dark');
+            }
+            window.addEventListener('DOMContentLoaded', () => {
+                const saved = localStorage.getItem('theme');
+                setTheme(saved || 'dark');
+            });
+        </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>emzy.com – Your Emotion, Your Music</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Bebas+Neue&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0F172A;
+            --primary: #6366F1;
+            --accent: #EC4899;
+            --cyan: #22D3EE;
+            --text: #F8FAFC;
+            --card: rgba(255, 255, 255, 0.06);
+            --card-border: rgba(255, 255, 255, 0.18);
+        }
+        [data-theme="light"] {
+            --bg: #F8FAFC;
+            --primary: #6366F1;
+            --accent: #EC4899;
+            --cyan: #22D3EE;
+            --text: #0F172A;
+            --card: rgba(0, 0, 0, 0.04);
+            --card-border: rgba(0, 0, 0, 0.10);
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: url('/dashboard-bg.jpeg') no-repeat center center fixed;
+            background-size: cover;
+            color: var(--text);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: none;
+            opacity: 0;
+            z-index: 0;
+            filter: none;
+        }
+
+        body::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: none;
+            opacity: 0;
+            z-index: 0;
+        }
+        .navbar {
+            backdrop-filter: blur(8px);
+            background: rgba(0, 0, 0, 0.7);
+            border-bottom: 1px solid rgba(99, 102, 241, 0.3);
+            z-index: 1100;
+            position: relative;
+        }
+        .sidebar {
+            z-index: 1200;
+        }
+        .sidebar-overlay {
+            z-index: 1150;
+        }
+        .navbar-brand {
+            font-family: 'Bebas Neue', cursive;
+            font-weight: 400;
+            letter-spacing: 0.16em;
+            text-shadow: 0 0 18px rgba(99, 102, 241, 0.7), 0 0 24px rgba(236, 72, 153, 0.4);
+            color: var(--primary);
+        }
+        .card {
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 18px;
+            box-shadow: 0 18px 60px rgba(0, 0, 0, 0.8);
+            position: relative;
+            overflow: hidden;
+            z-index: 2;
+            backdrop-filter: blur(8px);
+        }
+        .card::before {
+            content: '';
+            position: absolute;
+            inset: -40px;
+            background: none;
+            opacity: 0;
+            filter: none;
+            z-index: -1;
+        }
+        .btn-primary {
+            background: linear-gradient(130deg, var(--primary), var(--accent));
+            border: none;
+            box-shadow: 0 0 22px rgba(99, 102, 241, 0.35);
+        }
+        .btn-success {
+            background: linear-gradient(130deg, var(--cyan), rgba(56, 189, 248, 0.75));
+            border: none;
+            box-shadow: 0 0 22px rgba(34, 211, 238, 0.35);
+        }
+        .card h2, .card h4 {
+            color: var(--text);
+        }
+        .form-control, .btn {
+            border-radius: 12px;
+        }
+
+        .video-wrapper {
+            position: relative;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 0 40px rgba(99, 102, 241, 0.35), 0 0 60px rgba(236, 72, 153, 0.25);
+        }
+
+        .video-wrapper video {
+            display: block;
+            width: 100%;
+            border-radius: 18px;
+        }
+
+        .scanner {
+            position: absolute;
+            inset: 0;
+            border: 2px solid rgba(99, 102, 241, 0.55);
+            border-radius: 18px;
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.4), 0 0 30px rgba(236, 72, 153, 0.25);
+            pointer-events: none;
+            transition: box-shadow 0.24s ease;
+        }
+
+        .scanner.active {
+            box-shadow: 0 0 24px rgba(34, 211, 238, 0.75), 0 0 40px rgba(236, 72, 153, 0.55);
+        }
+
+        .scanner::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(34, 211, 238, 0.35), transparent);
+            animation: scan 2.5s ease-in-out infinite;
+        }
+
+        @keyframes scan {
+            0% { transform: translateX(-110%); }
+            50% { transform: translateX(110%); }
+            100% { transform: translateX(-110%); }
+        }
+
+        .sound-wave {
+            position: absolute;
+            left: 50%;
+            bottom: -14px;
+            transform: translateX(-50%);
+            width: 110%;
+            height: 72px;
+            pointer-events: none;
+            opacity: 0.9;
+        }
+
+        .sound-wave svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 0 20px rgba(34, 211, 238, 0.5)) drop-shadow(0 0 18px rgba(236, 72, 153, 0.35));
+        }
+
+        .sound-wave path {
+            stroke-dasharray: 360;
+            stroke-dashoffset: 0;
+            animation: wave 2.8s linear infinite;
+            opacity: 0.75;
+        }
+
+        .sound-wave.active path {
+            stroke: rgba(236, 72, 153, 0.95);
+            opacity: 1;
+            stroke-width: 4;
+            animation-duration: 1.4s;
+        }
+
+        @keyframes wave {
+            0% { stroke-dashoffset: 0; }
+            100% { stroke-dashoffset: -360; }
+        }
+
+        .emoji {
+            position: absolute;
+            font-size: 1.8rem;
+            pointer-events: none;
+            opacity: 0;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255,255,255,0.85);
+            animation: floatEmoji 2.8s ease-in-out forwards;
+        }
+
+        @keyframes floatEmoji {
+            0% { transform: translateY(16px) scale(0.85); opacity: 0; }
+            25% { opacity: 1; }
+            100% { transform: translateY(-220px) scale(1.12); opacity: 0; }
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -300px;
+            width: 300px;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.85);
+            border-right: 1px solid rgba(99, 102, 241, 0.3);
+            transition: left 0.3s ease;
+            z-index: 1000;
+            overflow-y: auto;
+            backdrop-filter: blur(8px);
+        }
+        .sidebar.open {
+            left: 0;
+        }
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid var(--card-border);
+        }
+        .sidebar-title {
+            margin: 0;
+            color: var(--text);
+        }
+        .sidebar-content {
+            padding: 1rem 0;
+        }
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            z-index: 999;
+        }
+        .sidebar-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Scroll bars */
+        .container {
+            overflow-y: auto;
+            max-height: calc(100vh - 80px);
+        }
+        .card {
+            overflow-y: auto;
+            max-height: 80vh;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--card);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent);
+        }
+
+        /* Word Memory Game Styles */
+        .word-game {
+            margin-top: 2rem;
+        }
+        .word-display {
+            min-height: 200px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            padding: 2rem;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+        }
+        .word-item {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--cyan);
+            padding: 1rem 2rem;
+            background: rgba(34, 211, 238, 0.2);
+            border: 2px solid rgba(34, 211, 238, 0.5);
+            border-radius: 12px;
+            margin: 0.5rem;
+            display: inline-block;
+            animation: wordAppear 0.6s ease-out;
+            box-shadow: 0 4px 15px rgba(34, 211, 238, 0.3);
+        }
+        .question-display {
+            text-align: center;
+            padding: 2rem;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(236, 72, 153, 0.3);
+        }
+        .question-text {
+            font-size: 1.3rem;
+            color: var(--accent);
+            margin-bottom: 1rem;
+        }
+        .answer-input {
+            width: 100%;
+            max-width: 400px;
+            padding: 0.75rem;
+            border: 2px solid rgba(99, 102, 241, 0.3);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text);
+            font-size: 1rem;
+            text-align: center;
+        }
+        .answer-input:focus {
+            border-color: var(--cyan);
+            box-shadow: 0 0 15px rgba(34, 211, 238, 0.3);
+        }
+        .game-controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .word-stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        .word-stat-item {
+            text-align: center;
+            padding: 0.5rem;
+        }
+        .word-stat-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--cyan);
+        }
+        .leaderboard {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .emotion-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 2rem;
+            opacity: 0.7;
+        }
+        .hint-suggestion {
+            background: rgba(34, 211, 238, 0.2);
+            border: 1px solid rgba(34, 211, 238, 0.5);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            text-align: center;
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+            20% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+        }
+
+        @keyframes wordAppear {
+            0% { opacity: 0; transform: translateY(20px) scale(0.8); }
+            50% { opacity: 1; transform: translateY(0) scale(1.1); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <button class="btn btn-outline-light me-3" id="sidebarToggle" title="Menu">
+                <span class="hamburger-icon">☰</span>
+            </button>
+            <div class="d-flex flex-column flex-md-row align-items-md-center w-100">
+                <div class="d-flex flex-column align-items-start flex-grow-1">
+                                        <a class="navbar-brand d-flex align-items-center gap-2" href="#">
+                                                <svg width="38" height="38" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <defs>
+                                                        <radialGradient id="emzyGlow" cx="50%" cy="50%" r="50%">
+                                                            <stop offset="0%" stop-color="#22D3EE" stop-opacity="0.9"/>
+                                                            <stop offset="100%" stop-color="#6366F1" stop-opacity="0.7"/>
+                                                        </radialGradient>
+                                                        <linearGradient id="emzyStroke" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+                                                            <stop stop-color="#EC4899"/>
+                                                            <stop offset="1" stop-color="#22D3EE"/>
+                                                        </linearGradient>
+                                                    </defs>
+                                                    <circle cx="32" cy="32" r="28" fill="url(#emzyGlow)"/>
+                                                    <path d="M18 40 Q32 24 46 40" stroke="url(#emzyStroke)" stroke-width="4" fill="none" stroke-linecap="round"/>
+                                                    <circle cx="24" cy="28" r="3.2" fill="#fff"/>
+                                                    <circle cx="40" cy="28" r="3.2" fill="#fff"/>
+                                                </svg>
+                                                <span>emzy.com</span>
+                                        </a>
+                    <span class="text-white ms-1" style="letter-spacing: 0.04em; font-size: 1.05rem; font-weight: 400; opacity: 0.92;">Music That Understands You</span>
+                </div>
+                <div class="d-flex ms-md-auto mt-2 mt-md-0 gap-2 align-items-center">
+                    <button id="startBtnNav" class="btn btn-primary btn-sm">Start Camera</button>
+                    <button id="stopBtnNav" class="btn btn-secondary btn-sm">Stop Camera</button>
+                    <a class="btn btn-danger btn-sm" href="/logout">Logout</a>
+                    <button id="themeToggle" class="btn btn-outline-light btn-sm ms-2" title="Toggle dark/light mode">
+                        <span id="themeIcon" class="bi bi-moon-fill"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <!-- Sidebar -->
+    <div id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <h5 class="sidebar-title">Profile</h5>
+            <button class="btn btn-sm btn-outline-light" id="sidebarClose">×</button>
+        </div>
+        <div class="sidebar-content">
+            <div class="profile-section mb-3">
+                <div class="text-center mb-3">
+                    <img src="<%= typeof user !== 'undefined' ? user.profilePic : '/images/default-avatar.png' %>" alt="Profile" class="profile-avatar rounded-circle" style="width: 60px; height: 60px; object-fit: cover;">
+                    <h6 class="mt-2 text-white"><%= typeof user !== 'undefined' ? user.name : 'User' %></h6>
+                    <p class="text-muted small"><%= typeof user !== 'undefined' ? user.bio : 'Bio' %></p>
+                </div>
+                <a href="/profile" class="btn btn-sm btn-outline-primary w-100 mb-2">Edit Profile</a>
+            </div>
+            <hr class="bg-light">
+            <div class="friends-section">
+                <h6 class="text-white mb-2">Friends (<%= typeof user !== 'undefined' ? user.friends.length : 0 %>)</h6>
+                <div class="friends-list mb-3" style="max-height: 150px; overflow-y: auto;">
+                    <% if (typeof user !== 'undefined' && user.friends.length > 0) { %>
+                        <% user.friends.forEach(friendId => { %>
+                            <% const friend = users.find(u => u.id === friendId); %>
+                            <% if (friend) { %>
+                                <div class="d-flex align-items-center mb-2">
+                                    <img src="<%= friend.profilePic %>" alt="<%= friend.name %>" class="rounded-circle me-2" style="width: 30px; height: 30px; object-fit: cover;">
+                                    <span class="text-white small"><%= friend.name %></span>
+                                </div>
+                            <% } %>
+                        <% }); %>
+                    <% } else { %>
+                        <p class="text-muted small">No friends yet</p>
+                    <% } %>
+                </div>
+                <button class="btn btn-sm btn-outline-success w-100 mb-2" data-bs-toggle="modal" data-bs-target="#addFriendsModal">Add Friends</button>
+            </div>
+            <hr class="bg-light">
+            <div class="suggestions-section">
+                <h6 class="text-white mb-2">Suggestions</h6>
+                <div class="suggestions-list" style="max-height: 150px; overflow-y: auto;">
+                    <% if (typeof users !== 'undefined') { %>
+                        <% users.filter(u => u.id !== (typeof user !== 'undefined' ? user.id : 0) && !user.friends.includes(u.id) && !user.blocked.includes(u.id)).slice(0, 5).forEach(suggestion => { %>
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <div class="d-flex align-items-center">
+                                    <img src="<%= suggestion.profilePic %>" alt="<%= suggestion.name %>" class="rounded-circle me-2" style="width: 30px; height: 30px; object-fit: cover;">
+                                    <span class="text-white small"><%= suggestion.name %></span>
+                                </div>
+                                <form method="POST" action="/add-friend/<%= suggestion.id %>" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-outline-primary">Add</button>
+                                </form>
+                            </div>
+                        <% }); %>
+                    <% } %>
+                </div>
+            </div>
+            <hr class="bg-light">
+            <div class="favourites-section">
+                <h6 class="text-white mb-2">Favourites</h6>
+                <div class="favourites-list" style="max-height: 100px; overflow-y: auto;">
+                    <% if (typeof user !== 'undefined' && user.favourites.length > 0) { %>
+                        <% user.favourites.forEach(fav => { %>
+                            <p class="text-white small mb-1">• <%= fav %></p>
+                        <% }); %>
+                    <% } else { %>
+                        <p class="text-muted small">No favourites</p>
+                    <% } %>
+                </div>
+            </div>
+            <hr class="bg-light">
+            <a href="/logout" class="btn btn-sm btn-outline-danger w-100">Logout</a>
+        </div>
+    </div>
+    <!-- Overlay for sidebar -->
+    <div id="sidebarOverlay" class="sidebar-overlay"></div>
+
+    <!-- Add Friends Modal -->
+    <div class="modal fade" id="addFriendsModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content bg-dark text-white">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Friends</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <% if (typeof users !== 'undefined') { %>
+                        <% users.filter(u => u.id !== (typeof user !== 'undefined' ? user.id : 0) && !user.friends.includes(u.id) && !user.blocked.includes(u.id)).forEach(suggestion => { %>
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <div class="d-flex align-items-center">
+                                    <img src="<%= suggestion.profilePic %>" alt="<%= suggestion.name %>" class="rounded-circle me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                                    <div>
+                                        <div class="text-white"><%= suggestion.name %></div>
+                                        <small class="text-muted"><%= suggestion.bio %></small>
+                                    </div>
+                                </div>
+                                <form method="POST" action="/add-friend/<%= suggestion.id %>" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-success">Add Friend</button>
+                                </form>
+                            </div>
+                        <% }); %>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Word Memory Game Section -->
+    <div class="container mt-5 word-game">
+        <div class="card p-4">
+            <h2 class="text-center mb-4">📝 Advanced Word Memory Game</h2>
+            <div class="word-stats">
+                <div class="word-stat-item">
+                    <div>Score</div>
+                    <div class="word-stat-value" id="wordScore">0</div>
+                </div>
+                <div class="word-stat-item">
+                    <div>Streak</div>
+                    <div class="word-stat-value" id="wordStreak">0</div>
+                </div>
+                <div class="word-stat-item">
+                    <div>Level</div>
+                    <div class="word-stat-value" id="wordLevel">1</div>
+                </div>
+                <div class="word-stat-item">
+                    <div>Accuracy</div>
+                    <div class="word-stat-value" id="wordAccuracy">100%</div>
+                </div>
+            </div>
+            <div class="word-display" id="wordDisplay">
+                <div id="emotionIndicator" class="emotion-indicator"></div>
+                <div id="countdown" style="font-size: 3rem; color: var(--accent); display: none;">3</div>
+            </div>
+            <div class="question-display" id="questionDisplay" style="display: none;">
+                <div class="question-text" id="questionText"></div>
+                <input type="text" class="answer-input" id="answerInput" placeholder="Type your answer...">
+                <div class="game-controls">
+                    <button class="btn btn-primary" id="submitAnswer">Submit Answer</button>
+                    <button class="btn btn-secondary" id="getHint">💡 Hint</button>
+                </div>
+                <div id="hintSuggestion" class="hint-suggestion" style="display: none;"></div>
+            </div>
+            <div class="text-center mt-3">
+                <button class="btn btn-success" id="startWordGame">🎯 Start Word Game</button>
+                <button class="btn btn-info" id="viewLeaderboard" style="display: none;">🏆 Leaderboard</button>
+            </div>
+            <div id="leaderboard" class="leaderboard mt-3" style="display: none;">
+                <h4>🏆 Leaderboard</h4>
+                <div id="leaderboardList"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="emojiContainer" style="position: absolute; inset: 0; pointer-events: none; z-index: 50;"></div>
+    <div class="container mt-5">
+        <div class="card p-4">
+            <div class="row">
+                <div class="col-md-6">
+                    <h2>Emotion Detection</h2>
+                    <div class="video-wrapper">
+                        <video id="video" width="100%" autoplay muted playsinline class="rounded" style="background: #000; display: block;"></video>
+                        <div class="scanner" aria-hidden="true"></div>
+                        <div class="sound-wave" aria-hidden="true">
+                            <svg viewBox="0 0 360 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M0,30 C60,10 120,50 180,30 C240,10 300,40 360,30" fill="none" stroke="rgba(34,211,238,0.75)" stroke-width="3" stroke-linecap="round" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <button id="startBtn" class="btn btn-primary me-2">Start Camera</button>
+                        <button id="stopBtn" class="btn btn-secondary me-2">Stop Camera</button>
+                    </div>
+                    <div id="cameraStatus" class="text-success mt-2" style="min-height: 1.4rem;"></div>
+                    <div id="cameraError" class="text-danger mt-1" style="min-height: 1.4rem;"></div>
+                </div>
+                <div class="col-md-6">
+                    <h4>Detected Emotion</h4>
+                    <div id="emotionResult" class="mb-4"></div>
+
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h4 class="mb-0">Recommended Songs</h4>
+                        <div class="d-flex align-items-center">
+                            <label for="langSelect" class="me-2 mb-0" style="font-size:0.9rem; opacity:0.8;">Language</label>
+                            <select id="langSelect" class="form-select form-select-sm" style="width: 160px;">
+                                <option value="en">English</option>
+                                <option value="hi">हिंदी</option>
+                                <option value="es">Español</option>
+                                <option value="ta">தமிழ்</option>
+                                <option value="ml">മലയാളം</option>
+                                <option value="kn">ಕನ್ನಡ</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="songs"></div>
+
+
+                    <div id="quote" class="mt-4 p-3 rounded" style="background: rgba(0,0,0,0.35); border: 1px solid rgba(255,255,255,0.15);"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/sounds.js"></script>
+    <script>
+        let stream;
+        let video, startBtn, stopBtn, startBtnNav, stopBtnNav, cameraStatus, cameraError, emotionResult, songsDiv, scanner, soundWave, langSelect, quoteDiv, emojiContainer, sidebar, sidebarOverlay, sidebarToggle, sidebarClose, themeToggle, themeIcon;
+
+        function openSidebar() {
+            if (!sidebar || !sidebarOverlay) return;
+            sidebar.classList.add('open');
+            sidebarOverlay.classList.add('active');
+        }
+
+        function closeSidebar() {
+            if (!sidebar || !sidebarOverlay) return;
+            sidebar.classList.remove('open');
+            sidebarOverlay.classList.remove('active');
+        }
+
+        function clearCameraError() {
+            if (cameraError) cameraError.textContent = '';
+        }
+
+        function showCameraError(message) {
+            if (cameraError) cameraError.textContent = message;
+        }
+
+        function showCameraStatus(message) {
+            if (cameraStatus) cameraStatus.textContent = message;
+        }
+
+        function setCameraState(running) {
+            if (startBtn) startBtn.disabled = running;
+            if (stopBtn) stopBtn.disabled = !running;
+            if (startBtnNav) startBtnNav.disabled = running;
+            if (stopBtnNav) stopBtnNav.disabled = !running;
+        }
+
+        function checkCameraSupport() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                showCameraError('Camera not supported in this browser. Use Chrome, Edge, or Firefox.');
+                setCameraState(false);
+                return false;
+            }
+            return true;
+        }
+
+        async function startCamera() {
+            if (!checkCameraSupport()) return;
+            clearCameraError();
+            showCameraStatus('Requesting camera permission...');
+            console.log('📹 Starting camera...');
+            try {
+                console.log('🔍 Requesting getUserMedia with video constraints...');
+                const constraints = {
+                    video: {
+                        width: { ideal: 640 },
+                        height: { ideal: 480 }
+                    },
+                    audio: false
+                };
+                stream = await navigator.mediaDevices.getUserMedia(constraints);
+                console.log('✅ Stream acquired:', stream);
+                
+                if (!video) {
+                    console.error('❌ Video element not found!');
+                    showCameraError('Video element error');
+                    return;
+                }
+                
+                console.log('🎥 Setting video.srcObject...');
+                video.srcObject = stream;
+                video.onloadedmetadata = () => {
+                    console.log('✅ Video metadata loaded, dimensions:', video.videoWidth, 'x', video.videoHeight);
+                };
+                
+                console.log('▶️ Calling video.play()...');
+                const playPromise = video.play();
+                if (playPromise !== undefined) {
+                    await playPromise;
+                }
+                console.log('✅ Video is now playing');
+                
+                setCameraState(true);
+                showCameraStatus('✅ Camera running - detecting emotion...');
+                
+                // Auto-capture after stream is playing
+                if (video.readyState === video.HAVE_ENOUGH_DATA || video.videoWidth > 0) {
+                    setTimeout(autoCaptureAndDetect, 800);
+                } else {
+                    video.addEventListener('playing', () => {
+                        console.log('🎬 Video playing event triggered');
+                        setTimeout(autoCaptureAndDetect, 800);
+                    }, { once: true });
+                }
+            } catch (err) {
+                console.error('❌ Camera error details:', {
+                    name: err.name,
+                    message: err.message,
+                    code: err.code
+                });
+                
+                let friendly = '';
+                if (err.name === 'NotAllowedError') {
+                    friendly = '🔒 Camera permission DENIED. Please:\n1. Click the lock icon in the address bar\n2. Set Camera to "Allow"\n3. Reload the page and try again';
+                } else if (err.name === 'NotFoundError') {
+                    friendly = '📷 No camera found. Connect a webcam and refresh the page.';
+                } else if (err.name === 'SecurityError') {
+                    friendly = '🔐 Camera access blocked by browser security. Use HTTPS or localhost.';
+                } else {
+                    friendly = `❌ ${err.name}: ${err.message}`;
+                }
+                
+                showCameraError(friendly);
+                showCameraStatus('Camera failed');
+                setCameraState(false);
+            }
+        }
+
+        function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            if (video) {
+                video.pause();
+                video.srcObject = null;
+            }
+            scanner && scanner.classList.remove('active');
+            soundWave && soundWave.classList.remove('active');
+            setCameraState(false);
+            showCameraStatus('Camera stopped');
+            clearCameraError();
+        }
+
+        function handleStartCamera() {
+            startCamera();
+        }
+
+        function handleStopCamera() {
+            stopCamera();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            themeToggle = document.getElementById('themeToggle');
+            themeIcon = document.getElementById('themeIcon');
+            video = document.getElementById('video');
+            startBtn = document.getElementById('startBtn');
+            stopBtn = document.getElementById('stopBtn');
+            startBtnNav = document.getElementById('startBtnNav');
+            stopBtnNav = document.getElementById('stopBtnNav');
+            cameraStatus = document.getElementById('cameraStatus');
+            cameraError = document.getElementById('cameraError');
+            emotionResult = document.getElementById('emotionResult');
+            songsDiv = document.getElementById('songs');
+            scanner = document.querySelector('.scanner');
+            soundWave = document.querySelector('.sound-wave');
+            langSelect = document.getElementById('langSelect');
+            quoteDiv = document.getElementById('quote');
+            emojiContainer = document.getElementById('emojiContainer');
+            sidebar = document.getElementById('sidebar');
+            sidebarOverlay = document.getElementById('sidebarOverlay');
+            sidebarToggle = document.getElementById('sidebarToggle');
+            sidebarClose = document.getElementById('sidebarClose');
+
+            console.log('🎬 Page loaded, initializing...');
+            console.log('✓ Video element:', !!video);
+            console.log('✓ Start button:', !!startBtn);
+            console.log('✓ Camera support:', checkCameraSupport());
+
+            if (themeToggle && themeIcon) {
+                const setIcon = () => {
+                    const mode = document.documentElement.getAttribute('data-theme') || 'dark';
+                    themeIcon.className = mode === 'dark' ? 'bi bi-moon-fill' : 'bi bi-sun-fill';
+                };
+                themeToggle.onclick = () => {
+                    toggleTheme();
+                    setIcon();
+                };
+                setIcon();
+            }
+
+            if (sidebarToggle) sidebarToggle.addEventListener('click', openSidebar);
+            if (sidebarClose) sidebarClose.addEventListener('click', closeSidebar);
+            if (sidebarOverlay) sidebarOverlay.addEventListener('click', closeSidebar);
+
+            if (startBtn) {
+                startBtn.addEventListener('click', handleStartCamera);
+                console.log('✓ Start button listener attached');
+            }
+            if (stopBtn) {
+                stopBtn.addEventListener('click', handleStopCamera);
+                console.log('✓ Stop button listener attached');
+            }
+            if (startBtnNav) startBtnNav.addEventListener('click', handleStartCamera);
+            if (stopBtnNav) stopBtnNav.addEventListener('click', handleStopCamera);
+
+            setCameraState(false);
+            showCameraStatus('Ready - Click "Start Camera"');
+
+            if (window.EMZY_Sound) {
+                EMZY_Sound.bindGlobalInteractions();
+                EMZY_Sound.playOpen();
+            }
+
+            // Check for camera permissions status
+            if (navigator.permissions && navigator.permissions.query) {
+                navigator.permissions.query({ name: 'camera' }).then(result => {
+                    console.log('📷 Camera permission status:', result.state);
+                    if (result.state === 'denied') {
+                        showCameraError('⚠️ Camera permission permanently denied. Check browser settings.');
+                    }
+                }).catch(err => console.log('Permission query not supported'));
+            }
+        });
+
+        function celebrateWithEmojis(count = 12) {
+            if (!emojiContainer) return;
+            const emojis = ['🎵','🎶','😊','💖','✨','🎧','🔥'];
+            for (let i = 0; i < count; i++) {
+                const el = document.createElement('div');
+                el.className = 'emoji';
+                el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+                el.style.left = `${8 + Math.random() * 84}%`;
+                el.style.animationDuration = `${2.4 + Math.random() * 1.2}s`;
+                emojiContainer.appendChild(el);
+                el.addEventListener('animationend', () => el.remove());
+            }
+        }
+
+        // Automatically capture and detect after camera starts
+        async function autoCaptureAndDetect() {
+            console.log('🎬 autoCaptureAndDetect started, stream:', !!stream);
+            if (!stream) {
+                console.warn('⚠️ No stream available');
+                return;
+            }
+            
+            try {
+                const canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                console.log('📸 Canvas created:', canvas.width, 'x', canvas.height);
+                
+                if (canvas.width === 0 || canvas.height === 0) {
+                    console.error('❌ Canvas has zero dimensions');
+                    return;
+                }
+                
+                const context = canvas.getContext('2d');
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                console.log('📤 Image encoded, size:', dataUrl.length, 'bytes');
+                
+                emotionResult.textContent = 'Detecting emotion...';
+                scanner.classList.add('active');
+                soundWave.classList.add('active');
+                songsDiv.innerHTML = '';
+                
+                console.log('🔄 Sending to /detect-emotion...');
+                const response = await fetch('/detect-emotion', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ image: dataUrl })
+                });
+                
+                console.log('📥 Response status:', response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const result = await response.json();
+                console.log('✅ Emotion result:', result);
+
+                // Update word memory game with emotion
+                if (window.wordGame) {
+                    window.wordGame.updateEmotionIndicator(result.emotion.toLowerCase());
+                }
+
+                if (result.error) {
+                    emotionResult.textContent = '❌ Error: ' + result.error;
+                    songsDiv.innerHTML = '<div class="text-danger">Emotion detection failed. Check console for details.</div>';
+                    quoteDiv.innerHTML = '';
+                } else {
+                    emotionResult.textContent = `Detected Emotion: ${result.emotion}`;
+                    const songs = await getSongsForEmotion(result.emotion);
+                    const local = songs.local || [];
+                    const search = songs.search || [];
+
+                    songsDiv.innerHTML = `
+                            <div class="mb-3">
+                                <h5>🎵 Your Playlist</h5>
+                                <div class="d-flex gap-2 mb-2">
+                                    <button id="prevTrack" class="btn btn-sm btn-outline-secondary">⏮️ Prev</button>
+                                    <button id="playPause" class="btn btn-sm btn-outline-primary">▶️ Play</button>
+                                    <button id="nextTrack" class="btn btn-sm btn-outline-secondary">⏭️ Next</button>
+                                </div>
+                                <audio id="playlistPlayer" controls style="width: 100%; --webkit-media-controls-panel-background-color: rgba(0,0,0,0.7);" preload="metadata" volume="1.0"></audio>
+                                <div id="trackList" class="list-group mt-3">
+                                    ${local.length ? local.map((song, idx) => `
+                                        <button type="button" class="list-group-item list-group-item-action" data-url="${song.url}" data-index="${idx}">
+                                            ${song.title}
+                                        </button>
+                                    `).join('') : '<div class="text-muted">No songs found for this emotion</div>'}
+                                </div>
+                            </div>
+                        `;
+
+                        const player = document.getElementById('playlistPlayer');
+                        // Set volume to 100%
+                        player.volume = 1.0;
+                        const trackButtons = Array.from(document.querySelectorAll('#trackList .list-group-item'));
+                        let currentTrackIndex = 0;
+
+                        function setTrack(index) {
+                            if (!trackButtons.length) return;
+                            if (index < 0) index = trackButtons.length - 1;
+                            if (index >= trackButtons.length) index = 0;
+                            currentTrackIndex = index;
+
+                            const button = trackButtons[currentTrackIndex];
+                            const url = button.getAttribute('data-url');
+                            player.src = url;
+                            player.volume = 1.0; // Ensure volume is 100%
+
+                            trackButtons.forEach(btn => btn.classList.remove('active'));
+                            button.classList.add('active');
+                        }
+
+                        function playTrack() {
+                            if (!player.src) return;
+                            player.volume = 1.0; // Ensure volume is 100%
+                            player.play().catch(() => {
+                                // Autoplay may be blocked, user can hit play.
+                            });
+                        }
+
+                        function togglePlayPause() {
+                            if (player.paused) {
+                                playTrack();
+                            } else {
+                                player.pause();
+                            }
+                        }
+
+                        function playNext() {
+                            setTrack(currentTrackIndex + 1);
+                            playTrack();
+                        }
+
+                        function playPrev() {
+                            setTrack(currentTrackIndex - 1);
+                            playTrack();
+                        }
+
+                        trackButtons.forEach(btn => {
+                            btn.addEventListener('click', () => {
+                                setTrack(parseInt(btn.getAttribute('data-index'), 10));
+                                playTrack();
+                            });
+                        });
+
+                        document.getElementById('prevTrack').addEventListener('click', playPrev);
+                        document.getElementById('nextTrack').addEventListener('click', playNext);
+                        document.getElementById('playPause').addEventListener('click', togglePlayPause);
+
+                        player.addEventListener('ended', playNext);
+
+                        if (trackButtons.length) {
+                            setTrack(0);
+                            playTrack();
+                        }
+
+                        // celebration emoji animation for song match
+                        celebrateWithEmojis();
+                    }
+                    const selectedLang = langSelect ? langSelect.value : 'en';
+                    const quote = getQuoteForEmotion(result.emotion, selectedLang);
+                    quoteDiv.innerHTML = quote ? `<p class="mb-0">“${quote}”</p>` : '';
+                    console.log('🎵 Emotion detected, songs loaded');
+                }
+             catch (err) {
+                console.error('❌ Emotion detection error:', {
+                    name: err.name,
+                    message: err.message,
+                    stack: err.stack
+                });
+                emotionResult.textContent = '❌ Error: ' + err.message;
+                songsDiv.innerHTML = '<div class="text-danger"><strong>Error detecting emotion:</strong><br>' + err.message + '<br><br>Make sure both servers are running:<ul><li>Node.js on port 3000</li><li>Python API on port 5001</li></ul></div>';
+            } finally {
+                setTimeout(() => {
+                    scanner.classList.remove('active');
+                    soundWave.classList.remove('active');
+                }, 1200);
+            }
+        }
+
+        async function getSongsForEmotion(emotion) {
+            // Fetch songs from Downloads folders via API
+            const key = (emotion || '').toString().trim().toLowerCase();
+            
+            try {
+                console.log(`📥 Fetching songs for emotion: ${key}`);
+                const response = await fetch(`/get-songs/${key}`);
+                const data = await response.json();
+                
+                if (data.error) {
+                    console.warn(`⚠️ ${data.error}`);
+                }
+                
+                console.log(`✅ Found ${data.songs.length} local songs for ${key}`);
+                return {
+                    local: data.songs || [],
+                    search: [] // No Masstamilan search needed with local files
+                };
+            } catch (err) {
+                console.error(`❌ Error fetching songs: ${err.message}`);
+                return {
+                    local: [],
+                    search: []
+                };
+            }
+        }
+
+        function getQuoteForEmotion(emotion, lang = 'en') {
+            const quotes = {
+                happy: {
+                    en: 'Joy is the simplest form of gratitude.',
+                    hi: 'खुशी कृतज्ञता का सबसे सरल रूप है।',
+                    es: 'La alegría es la forma más sencilla de gratitud.',
+                    ta: 'மகிழ்ச்சி நன்றிக்குரிய எளிய வடிவம்.',
+                    ml: 'സന്തോഷം നന്ദിയുടെ ഏറ്റവും ലളിതമായ രൂപമാണ്.',
+                    kn: 'ಆನಂದವು ಕೃತಜ್ಞತೆಯ ಅತ್ಯಂತ ಸರಳ ರೂಪವಾಗಿದೆ.'
+                },
+                sad: {
+                    en: 'Even the darkest night will end and the sun will rise.',
+                    hi: 'यहाँ तक ​​कि सबसे अँधी रात भी समाप्त होगी और सूरज उगेगा।',
+                    es: 'Incluso la noche más oscura terminará y el sol saldrá.',
+                    ta: 'கடினமான இரவும் முடிந்து சூரியன் எழும்.',
+                    ml: 'ഇരുണ്ട രാത്രി പോലും അവസാനിക്കും, സൂര്യൻ ഉദിക്കും.',
+                    kn: 'ಇಂದ್ರ ಆರಂಭವಾದ ರಾತ್ರಿ ಸಹ ಮುಗಿಯುತ್ತದೆ ಮತ್ತು ಸೂರ್ಯ ಉದಯಿಸುತ್ತದೆ.'
+                }
+            };
+            const list = quotes[emotion] || quotes['sad'];
+            return list[lang] || list['en'];
+        }
+
+        // Initialize word memory game when page loads
+
+        // Word Memory Game Class
+        class WordMemoryGame {
+            constructor() {
+                this.display = document.getElementById('wordDisplay');
+                this.questionDisplay = document.getElementById('questionDisplay');
+                this.questionText = document.getElementById('questionText');
+                this.answerInput = document.getElementById('answerInput');
+                this.submitBtn = document.getElementById('submitAnswer');
+                this.hintBtn = document.getElementById('getHint');
+                this.startBtn = document.getElementById('startWordGame');
+                this.leaderboardBtn = document.getElementById('viewLeaderboard');
+                this.leaderboard = document.getElementById('leaderboard');
+                this.leaderboardList = document.getElementById('leaderboardList');
+                this.countdown = document.getElementById('countdown');
+                this.hintSuggestion = document.getElementById('hintSuggestion');
+
+                // Stats elements
+                this.scoreEl = document.getElementById('wordScore');
+                this.streakEl = document.getElementById('wordStreak');
+                this.levelEl = document.getElementById('wordLevel');
+                this.accuracyEl = document.getElementById('wordAccuracy');
+
+                // Game state
+                this.words = [];
+                this.currentQuestion = null;
+                this.currentEmotion = 'neutral';
+                this.score = 0;
+                this.streak = 0;
+                this.level = 1;
+                this.questionsAnswered = 0;
+                this.correctAnswers = 0;
+                this.gameActive = false;
+                this.gameSpeed = 1;
+                this.leaderboardData = JSON.parse(localStorage.getItem('wordGameLeaderboard') || '[]');
+                this.sessionStartTime = null;
+                this.totalSessionTime = 0;
+
+                // Word lists by difficulty
+                this.wordLists = {
+                    easy: ['apple', 'book', 'cat', 'dog', 'elephant', 'flower', 'garden', 'house', 'ice', 'jungle'],
+                    medium: ['algorithm', 'beautiful', 'chemistry', 'diamond', 'elephant', 'fantastic', 'galaxy', 'harmony', 'illusion', 'journey', 'kaleidoscope', 'laboratory'],
+                    hard: ['accommodation', 'bureaucracy', 'categorization', 'differentiation', 'electrification', 'formalization', 'globalization', 'hierarchical', 'infrastructure', 'jurisdiction', 'kaleidoscopic', 'laborious', 'metamorphosis', 'nationalization', 'optimization', 'philosophical']
+                };
+
+                this.bindEvents();
+                this.updateStats();
+            }
+
+            bindEvents() {
+                this.startBtn.addEventListener('click', () => this.startGame());
+                this.submitBtn.addEventListener('click', () => this.submitAnswer());
+                this.hintBtn.addEventListener('click', () => this.giveHint());
+                this.leaderboardBtn.addEventListener('click', () => this.toggleLeaderboard());
+                this.answerInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.submitAnswer();
+                });
+            }
+
+            startGame() {
+                this.gameActive = true;
+                this.questionsAnswered = 0;
+                this.correctAnswers = 0;
+                this.score = 0;
+                this.streak = 0;
+                this.sessionStartTime = Date.now();
+                this.startBtn.style.display = 'none';
+                this.leaderboardBtn.style.display = 'inline-block';
+                this.generateWords();
+                this.showWords();
+            }
+
+            generateWords() {
+                const difficulty = this.getDifficulty();
+                const wordList = this.wordLists[difficulty];
+                const numWords = difficulty === 'easy' ? 5 : difficulty === 'medium' ? 8 : 12;
+
+                // Shuffle and select words
+                const shuffled = [...wordList].sort(() => Math.random() - 0.5);
+                this.words = shuffled.slice(0, numWords);
+            }
+
+            getDifficulty() {
+                if (this.level <= 3) return 'easy';
+                if (this.level <= 6) return 'medium';
+                return 'hard';
+            }
+
+            showWords() {
+                this.display.innerHTML = '';
+                this.questionDisplay.style.display = 'none';
+                this.hintSuggestion.style.display = 'none';
+                this.answerInput.value = '';
+
+                const emotionEl = document.createElement('div');
+                emotionEl.textContent = this.getEmotionEmoji();
+                emotionEl.style.cssText = 'text-align: center; font-size: 3rem; margin-bottom: 1rem;';
+                this.display.appendChild(emotionEl);
+
+                const wordDelay = 200 / this.gameSpeed;
+                this.words.forEach((word, index) => {
+                    setTimeout(() => {
+                        const wordEl = document.createElement('div');
+                        wordEl.className = 'word-item';
+                        wordEl.textContent = word;
+                        this.display.appendChild(wordEl);
+                    }, index * wordDelay);
+                });
+
+                const totalWordDisplayTime = (this.words.length - 1) * wordDelay + 500;
+                setTimeout(() => this.startCountdown(), totalWordDisplayTime);
+            }
+
+            startCountdown() {
+                let count = 3;
+                this.countdown.style.display = 'block';
+                this.countdown.textContent = count;
+                this.countdown.style.cssText = 'font-size: 3rem; color: var(--accent); text-align: center; margin: 2rem 0;';
+
+                const countdownSpeed = 1000 / this.gameSpeed;
+                const countdownInterval = setInterval(() => {
+                    count--;
+                    if (count > 0) {
+                        this.countdown.textContent = count;
+                    } else {
+                        clearInterval(countdownInterval);
+                        this.countdown.style.display = 'none';
+                        this.hideWords();
+                    }
+                }, countdownSpeed);
+            }
+
+            hideWords() {
+                this.display.innerHTML = '';
+                const emotionEl = document.createElement('div');
+                emotionEl.textContent = this.getEmotionEmoji();
+                emotionEl.style.cssText = 'text-align: center; font-size: 3rem; margin-bottom: 1rem;';
+                this.display.appendChild(emotionEl);
+                
+                const msgEl = document.createElement('div');
+                msgEl.textContent = '📝 Words hidden! Answer the questions below.';
+                msgEl.style.cssText = 'color: var(--text); opacity: 0.8; text-align: center; font-size: 1.1rem;';
+                this.display.appendChild(msgEl);
+                this.askQuestion();
+            }
+
+            askQuestion() {
+                const questionTypes = ['recall', 'nth_word', 'starts_with'];
+                const questionType = questionTypes[Math.floor(Math.random() * questionTypes.length)];
+
+                switch (questionType) {
+                    case 'recall':
+                        this.currentQuestion = {
+                            type: 'recall',
+                            text: 'List all the words you remember (comma-separated):',
+                            answer: this.words
+                        };
+                        break;
+                    case 'nth_word':
+                        const position = Math.floor(Math.random() * this.words.length) + 1;
+                        this.currentQuestion = {
+                            type: 'nth_word',
+                            text: `What was the ${position}${this.getOrdinalSuffix(position)} word?`,
+                            answer: [this.words[position - 1]]
+                        };
+                        break;
+                    case 'starts_with':
+                        const letters = [...new Set(this.words.map(w => w[0]))];
+                        const letter = letters[Math.floor(Math.random() * letters.length)];
+                        const matchingWords = this.words.filter(w => w.startsWith(letter));
+                        this.currentQuestion = {
+                            type: 'starts_with',
+                            text: `Which words start with the letter "${letter}"? (comma-separated)`,
+                            answer: matchingWords
+                        };
+                        break;
+                }
+
+                this.questionText.textContent = this.currentQuestion.text;
+                this.questionDisplay.style.display = 'block';
+                this.answerInput.focus();
+                this.answerInput.value = '';
+            }
+
+            getOrdinalSuffix(num) {
+                if (num === 1) return 'st';
+                if (num === 2) return 'nd';
+                if (num === 3) return 'rd';
+                return 'th';
+            }
+
+            submitAnswer() {
+                const userAnswer = this.answerInput.value.trim().toLowerCase();
+                let isCorrect = false;
+
+                if (this.currentQuestion.type === 'recall') {
+                    const userWords = userAnswer.split(',').map(w => w.trim().toLowerCase());
+                    const correctWords = this.currentQuestion.answer.map(w => w.toLowerCase());
+                    isCorrect = this.checkRecallAnswer(userWords, correctWords);
+                } else {
+                    const userWords = userAnswer.split(',').map(w => w.trim().toLowerCase());
+                    const correctWords = this.currentQuestion.answer.map(w => w.toLowerCase());
+                    isCorrect = this.checkListAnswer(userWords, correctWords);
+                }
+
+                this.questionsAnswered++;
+                if (isCorrect) {
+                    this.correctAnswers++;
+                    this.score += 10 * this.level;
+                    this.streak++;
+                    this.showFeedback('Correct! 🎉', 'success');
+                } else {
+                    this.streak = 0;
+                    this.score = Math.max(0, this.score - 5);
+                    this.showFeedback('Incorrect. The correct answer was: ' + this.currentQuestion.answer.join(', '), 'error');
+                }
+
+                this.updateStats();
+                this.adjustDifficulty();
+
+                setTimeout(() => {
+                    if (this.questionsAnswered < 5) {
+                        this.askQuestion();
+                    } else {
+                        this.endGame();
+                    }
+                }, 2000);
+            }
+
+            checkRecallAnswer(userWords, correctWords) {
+                const correctSet = new Set(correctWords);
+                const userSet = new Set(userWords);
+                const intersection = new Set([...correctSet].filter(x => userSet.has(x)));
+                return intersection.size >= correctWords.length * 0.6; // 60% accuracy
+            }
+
+            checkListAnswer(userWords, correctWords) {
+                if (userWords.length !== correctWords.length) return false;
+                return userWords.every(word => correctWords.includes(word));
+            }
+
+            showFeedback(message, type) {
+                const feedback = document.createElement('div');
+                feedback.textContent = message;
+                feedback.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: ${type === 'success' ? 'rgba(34, 197, 94, 0.9)' : 'rgba(239, 68, 68, 0.9)'};
+                    color: white;
+                    padding: 1rem 2rem;
+                    border-radius: 8px;
+                    font-size: 1.2rem;
+                    z-index: 1000;
+                    animation: fadeInOut 2s ease;
+                `;
+                document.body.appendChild(feedback);
+                setTimeout(() => feedback.remove(), 2000);
+            }
+
+            giveHint() {
+                if (!this.currentQuestion) return;
+
+                let hint = '';
+                switch (this.currentQuestion.type) {
+                    case 'recall':
+                        hint = `There were ${this.words.length} words. Some letters: ${this.words.map(w => w[0]).join(', ')}`;
+                        break;
+                    case 'nth_word':
+                        const position = this.words.indexOf(this.currentQuestion.answer[0]) + 1;
+                        hint = `It was around position ${position} in the list`;
+                        break;
+                    case 'starts_with':
+                        const letter = this.currentQuestion.answer[0][0];
+                        hint = `Words starting with "${letter}". There are ${this.currentQuestion.answer.length} such words.`;
+                        break;
+                }
+
+                this.hintSuggestion.textContent = `💡 Hint: ${hint}`;
+                this.hintSuggestion.style.display = 'block';
+                this.score = Math.max(0, this.score - 2);
+                this.updateStats();
+            }
+
+            adjustDifficulty() {
+                const accuracy = this.questionsAnswered > 0 ? this.correctAnswers / this.questionsAnswered : 1;
+                
+                // Performance-based adjustment
+                if (accuracy >= 0.8 && this.questionsAnswered >= 3) {
+                    this.level = Math.min(this.level + 1, 10);
+                } else if (accuracy < 0.5 && this.level > 1) {
+                    this.level = Math.max(this.level - 1, 1);
+                }
+
+                // Emotion-based adjustments
+                switch(this.currentEmotion) {
+                    case 'happy':
+                        this.level = Math.min(this.level + 1, 10);
+                        this.gameSpeed = 1.2;
+                        break;
+                    case 'sad':
+                        this.level = Math.max(this.level - 1, 1);
+                        this.gameSpeed = 0.8;
+                        break;
+                    case 'angry':
+                        this.gameSpeed = 0.5;
+                        break;
+                    default:
+                        this.gameSpeed = 1;
+                }
+            }
+
+            updateEmotionIndicator(emotion) {
+                this.currentEmotion = emotion?.toLowerCase() || 'neutral';
+                if (this.gameActive) {
+                    this.adjustDifficulty();
+                }
+            }
+            
+            getEmotionEmoji() {
+                const emojis = {
+                    happy: '😊',
+                    sad: '😢',
+                    angry: '😠',
+                    neutral: '😐',
+                    surprised: '😮',
+                    disgusted: '🤢',
+                    fearful: '😨'
+                };
+                return emojis[this.currentEmotion] || '😐';
+            }
+
+            endGame() {
+                this.gameActive = false;
+                this.totalSessionTime = Math.floor((Date.now() - this.sessionStartTime) / 1000);
+                this.saveToLeaderboard();
+                
+                const accuracy = this.questionsAnswered > 0 ? Math.round((this.correctAnswers / this.questionsAnswered) * 100) : 0;
+                this.display.innerHTML = `
+                    <div style="text-align: center; padding: 2rem; background: rgba(34, 211, 238, 0.1); border-radius: 12px;">
+                        <h3>Game Complete! 🎉</h3>
+                        <div style="margin: 1rem 0;">
+                            <p><strong>Final Score:</strong> ${this.score}</p>
+                            <p><strong>Accuracy:</strong> ${accuracy}%</p>
+                            <p><strong>Best Streak:</strong> ${this.streak}</p>
+                            <p><strong>Time Taken:</strong> ${this.totalSessionTime}s</p>
+                            <p><strong>Level Reached:</strong> ${this.level}</p>
+                        </div>
+                    </div>
+                `;
+                this.questionDisplay.style.display = 'none';
+                this.hintSuggestion.style.display = 'none';
+                this.startBtn.style.display = 'inline-block';
+                this.leaderboardBtn.style.display = 'inline-block';
+                this.gameSpeed = 1;
+            }
+
+            saveToLeaderboard() {
+                const accuracy = this.questionsAnswered > 0 ? Math.round((this.correctAnswers / this.questionsAnswered) * 100) : 0;
+                const entry = {
+                    score: this.score,
+                    accuracy: accuracy,
+                    level: this.level,
+                    time: this.totalSessionTime,
+                    emotion: this.currentEmotion,
+                    date: new Date().toLocaleDateString(),
+                    timestamp: Date.now()
+                };
+                this.leaderboardData.push(entry);
+                this.leaderboardData.sort((a, b) => b.score - a.score);
+                this.leaderboardData = this.leaderboardData.slice(0, 10);
+                localStorage.setItem('wordGameLeaderboard', JSON.stringify(this.leaderboardData));
+            }
+
+            toggleLeaderboard() {
+                if (this.leaderboard.style.display === 'none') {
+                    this.showLeaderboard();
+                } else {
+                    this.leaderboard.style.display = 'none';
+                }
+            }
+
+            showLeaderboard() {
+                if (this.leaderboardData.length === 0) {
+                    this.leaderboardList.innerHTML = '<div style="text-align: center; padding: 1rem; opacity: 0.7;">No games played yet. Start a game to see scores here!</div>';
+                } else {
+                    this.leaderboardList.innerHTML = this.leaderboardData.map((entry, index) => `
+                        <div class="leaderboard-item" style="padding: 0.8rem; background: rgba(99, 102, 241, 0.1); border-radius: 8px; margin-bottom: 0.5rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <strong>#${index + 1} ${entry.date}</strong>
+                                <span>${entry.emotion || '😐'}</span>
+                            </div>
+                            <div style="font-size: 0.9rem; opacity: 0.9; margin-top: 0.3rem;">
+                                Score: <strong>${entry.score}</strong> | Accuracy: <strong>${entry.accuracy}%</strong> | Level: <strong>${entry.level}</strong> | Time: <strong>${entry.time}s</strong>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+                this.leaderboard.style.display = 'block';
+            }
+
+            updateStats() {
+                if (this.scoreEl) this.scoreEl.textContent = this.score;
+                if (this.streakEl) this.streakEl.textContent = this.streak;
+                if (this.levelEl) this.levelEl.textContent = this.level;
+                if (this.accuracyEl) this.accuracyEl.textContent = this.questionsAnswered > 0 ?
+                    Math.round((this.correctAnswers / this.questionsAnswered) * 100) + '%' : '100%';
+            }
+        }
+
+        // Initialize word memory game when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            window.wordGame = new WordMemoryGame();
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
